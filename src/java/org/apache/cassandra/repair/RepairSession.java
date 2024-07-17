@@ -120,11 +120,9 @@ public class RepairSession extends AsyncFuture<RepairSessionResult> implements I
     /** Range to repair */
     public final boolean isIncremental;
     public final PreviewKind previewKind;
+    public final boolean repairData;
     public final boolean repairPaxos; // TODO (now): rename to repairPaxosIfSupported
-    public final boolean paxosOnly;
-
-    public final boolean accordOnly;
-    public final boolean isConsensusMigration;
+    public final boolean repairAccord;
 
     public final boolean excludedDeadNodes;
 
@@ -170,17 +168,16 @@ public class RepairSession extends AsyncFuture<RepairSessionResult> implements I
                          boolean pullRepair,
                          PreviewKind previewKind,
                          boolean optimiseStreams,
+                         boolean repairData,
                          boolean repairPaxos,
-                         boolean paxosOnly,
-                         boolean accordOnly,
-                         boolean isConsensusMigration,
+                         boolean repairAccord,
                          String... cfnames)
     {
         this.ctx = ctx;
         this.validationScheduler = validationScheduler;
+        this.repairData = repairData;
         this.repairPaxos = repairPaxos;
-        this.paxosOnly = paxosOnly;
-        this.isConsensusMigration = isConsensusMigration;
+        this.repairAccord = repairAccord;
         assert cfnames.length > 0 : "Repairing no column families seems pointless, doesn't it";
         this.state = new SessionState(ctx, parentRepairSession, keyspace, cfnames, commonRange);
         this.parallelismDegree = parallelismDegree;
@@ -189,7 +186,6 @@ public class RepairSession extends AsyncFuture<RepairSessionResult> implements I
         this.pullRepair = pullRepair;
         this.optimiseStreams = optimiseStreams;
         this.taskExecutor = new SafeExecutor(createExecutor(ctx));
-        this.accordOnly = accordOnly;
         this.excludedDeadNodes = excludedDeadNodes;
     }
 
@@ -313,7 +309,7 @@ public class RepairSession extends AsyncFuture<RepairSessionResult> implements I
         logger.info("{} parentSessionId = {}: new session: will sync {} on range {} for {}.{}",
                     previewKind.logPrefix(getId()), state.parentRepairSession, repairedNodes(), state.commonRange, state.keyspace, Arrays.toString(state.cfnames));
         Tracing.traceRepair("Syncing range {}", state.commonRange);
-        if (!previewKind.isPreview() && !paxosOnly && !accordOnly)
+        if (!previewKind.isPreview() && repairData)
         {
             SystemDistributedKeyspace.startRepairs(getId(), state.parentRepairSession, state.keyspace, state.cfnames, state.commonRange);
         }
@@ -465,6 +461,11 @@ public class RepairSession extends AsyncFuture<RepairSessionResult> implements I
                 }
             }
         }
+    }
+
+    public boolean accordOnly()
+    {
+        return repairData && repairAccord && !repairPaxos;
     }
 
     private boolean includesTables(Set<TableId> tableIds)
