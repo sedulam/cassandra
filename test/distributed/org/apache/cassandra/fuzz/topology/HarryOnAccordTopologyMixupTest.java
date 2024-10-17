@@ -72,7 +72,8 @@ public class HarryOnAccordTopologyMixupTest extends HarryTopologyMixupTest
         protected void onConfigure(IInstanceConfig config)
         {
             super.onConfigure(config);
-            config.set("accord.shard_count", 1);
+            config.set("accord.command_store_shard_count", 1)
+                  .set("accord.queue_shard_count", 1);
         }
 
         @Override
