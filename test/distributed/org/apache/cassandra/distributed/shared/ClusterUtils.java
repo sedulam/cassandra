@@ -54,6 +54,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import accord.primitives.TxnId;
+import org.apache.cassandra.db.virtual.AccordDebugKeyspace;
 import org.apache.cassandra.dht.Token;
 import org.apache.cassandra.distributed.Cluster;
 import org.apache.cassandra.distributed.api.ConsistencyLevel;
@@ -80,6 +81,7 @@ import org.apache.cassandra.net.RequestCallback;
 import org.apache.cassandra.net.Verb;
 import org.apache.cassandra.schema.KeyspaceMetadata;
 import org.apache.cassandra.schema.Schema;
+import org.apache.cassandra.schema.SchemaConstants;
 import org.apache.cassandra.schema.TableId;
 import org.apache.cassandra.service.StorageService;
 import org.apache.cassandra.service.accord.AccordService;
@@ -101,7 +103,6 @@ import static org.apache.cassandra.config.CassandraRelevantProperties.BROADCAST_
 import static org.apache.cassandra.config.CassandraRelevantProperties.REPLACE_ADDRESS_FIRST_BOOT;
 import static org.apache.cassandra.config.CassandraRelevantProperties.RING_DELAY;
 import static org.apache.cassandra.distributed.impl.DistributedTestSnitch.toCassandraInetAddressAndPort;
-import static org.apache.cassandra.schema.SchemaConstants.VIRTUAL_VIEWS;
 import static org.assertj.core.api.Assertions.assertThat;
 
 /**
@@ -1531,9 +1532,9 @@ public class ClusterUtils
 
     public static <T extends IInstance> LinkedHashMap<String, SimpleQueryResult> queryTxnState(AbstractCluster<T> cluster, TxnId txnId, int... nodes)
     {
-        String cql = String.format("SELECT * FROM %s.txn_blocked_by WHERE txn_id=?", VIRTUAL_VIEWS);
+        String cql = String.format("SELECT * FROM %s.%s WHERE txn_id=?", SchemaConstants.VIRTUAL_ACCORD_DEBUG, AccordDebugKeyspace.TXN_BLOCKED_BY);
         LinkedHashMap<String, SimpleQueryResult> map = new LinkedHashMap<>();
-        Iterable<T> it = nodes.length == 0 ? cluster::iterator : cluster.get(nodes);
+        Iterable<T> it = nodes.length == 0 ? cluster : cluster.get(nodes);
         for (T i : it)
         {
             if (i.isShutdown())
