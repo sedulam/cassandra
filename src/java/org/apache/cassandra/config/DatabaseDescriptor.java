@@ -3476,7 +3476,7 @@ public class DatabaseDescriptor
 
     public static AccordSpec getAccord()
     {
-        return conf.accord;
+        return conf == null ? null : conf.accord;
     }
 
     public static AccordSpec.TransactionalRangeMigration getTransactionalRangeMigration()
@@ -5492,9 +5492,14 @@ public class DatabaseDescriptor
         conf.cms_default_max_retries = value;
     }
 
-    public static DurationSpec getDefaultRetryBackoff()
+    public static DurationSpec.IntMillisecondsBound getDefaultRetryBackoff()
     {
         return conf.cms_default_retry_backoff;
+    }
+
+    public static DurationSpec.IntMillisecondsBound getDefaultMaxRetryBackoff()
+    {
+        return conf.cms_default_max_retry_backoff;
     }
 
     public static DurationSpec getCmsAwaitTimeout()
