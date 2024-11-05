@@ -89,6 +89,7 @@ import org.apache.cassandra.utils.concurrent.UncheckedInterruptedException;
 
 import static accord.api.ConfigurationService.EpochReady.DONE;
 import static accord.local.KeyHistory.COMMANDS;
+import static accord.primitives.SaveStatus.Applying;
 import static accord.primitives.Status.Committed;
 import static accord.primitives.Status.Invalidated;
 import static accord.primitives.Status.Truncated;
@@ -678,7 +679,11 @@ public class AccordCommandStore extends CommandStore
                          safeStore -> {
                              SafeCommand safeCommand = safeStore.unsafeGet(txnId);
                              Command local = safeCommand.current();
-                             Commands.maybeExecute(safeStore, safeCommand, local, true, true);
+                             if (local.hasBeen(Truncated))
+                                 return;
+
+                             if (local.saveStatus().compareTo(Applying) >= 0) Commands.applyWrites(safeStore, context, local).begin(agent);
+                             else Commands.maybeExecute(safeStore, safeCommand, local, true, true);
                          })
                 .begin((unused, throwable) -> {
                     if (throwable != null)
