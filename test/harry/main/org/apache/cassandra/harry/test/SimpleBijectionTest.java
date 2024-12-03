@@ -18,17 +18,16 @@
 
 package org.apache.cassandra.harry.test;
 
-import java.util.ArrayList;
-import java.util.List;
-
+import accord.utils.Invariants;
+import org.apache.cassandra.harry.ColumnSpec;
+import org.apache.cassandra.harry.SchemaSpec;
+import org.apache.cassandra.harry.dsl.HistoryBuilder;
+import org.apache.cassandra.harry.gen.InvertibleGenerator;
 import org.junit.Assert;
 import org.junit.Test;
 
-import accord.utils.Invariants;
-import org.apache.cassandra.harry.ColumnSpec;
-import org.apache.cassandra.harry.gen.InvertibleGenerator;
-import org.apache.cassandra.harry.SchemaSpec;
-import org.apache.cassandra.harry.gen.ValueGenerators;
+import java.util.ArrayList;
+import java.util.List;
 
 import static org.apache.cassandra.harry.checker.TestHelper.withRandom;
 import static org.apache.cassandra.harry.gen.InvertibleGenerator.MAX_ENTROPY;
@@ -76,14 +75,14 @@ public class SimpleBijectionTest
                                                                                     MAX_ENTROPY,
                                                                                     100,
                                                                                     SchemaSpec.forKeys(columns),
-                                                                                    (Object[] a, Object[] b) -> ValueGenerators.compareKeys(columns, a, b));
+                                                                                    (Object[] a, Object[] b) -> HistoryBuilder.compareKeys(columns, a, b));
                 Object[] previous = null;
                 for (int i = 0; i < 100; i++)
                 {
                     long descr = generator.descriptorAt(i);
                     Object[] next = generator.inflate(descr);
                     if (previous != null)
-                        Assert.assertTrue(ValueGenerators.compareKeys(columns, next, previous) > 0);
+                        Assert.assertTrue( HistoryBuilder.compareKeys(columns, next, previous) > 0);
                     Assert.assertEquals(descr, generator.deflate(next));
                     previous = next;
                 }
