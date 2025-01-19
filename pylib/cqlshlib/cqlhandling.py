@@ -13,7 +13,6 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
 # code for dealing with CQL's syntax, rules, interpretation
 # i.e., stuff that's not necessarily cqlsh-specific
 
@@ -135,7 +134,7 @@ class CqlParsingRuleSet(pylexotron.ParsingRuleSet):
     def cql_split_statements(self, text):
         tokens = self.lex(text)
         tokens = self.cql_massage_tokens(tokens)
-        stmts = util.split_list(tokens, lambda t: t[0] == 'endtoken')
+        stmts = self.group_tokens(tokens)
         output = []
         in_batch = False
         in_pg_string = len([st for st in tokens if len(st) > 0 and st[0] == 'unclosedPgString']) == 1
@@ -150,6 +149,39 @@ class CqlParsingRuleSet(pylexotron.ParsingRuleSet):
                 elif stmt[0][1].upper() == 'BEGIN':
                     in_batch = True
         return output, in_batch or in_pg_string
+
+    def group_tokens(self, items):
+        """
+        Split an iterable into sublists, using 'endtoken' to mark the end of each sublist.
+        Each sublist accumulates elements until an 'endtoken' is encountered. If the sublist
+        consists only of a single 'endtoken', it is excluded. An empty list is added to the
+        result after the last 'endtoken' for cases like autocompletion.
+
+        Parameters:
+        - items (iterable): An iterable of tokens, including 'endtoken' elements.
+
+        Returns:
+        - list: A list of sublists, with each sublist containing tokens split by 'endtoken'.
+        """
+        sublist = []
+        output = []
+
+        for i in items:
+            sublist.append(i)
+
+            # When an 'endtoken' is encountered, start a new sublist
+            if i[0] == 'endtoken':
+                # Skip adding sublist if it contains just one "endtoken"
+                if len(sublist) > 1:
+                    output.append(sublist)  # Add valid sublist
+
+                # Start a new sublist after an 'endtoken'
+                sublist = []
+
+        # Add an empty sublist after the last 'endtoken' for autocompletion or final statement
+        output.append(sublist)
+
+        return output
 
     def cql_complete_single(self, text, partial, init_bindings=None, ignore_case=True,
                             startsymbol='Start'):
