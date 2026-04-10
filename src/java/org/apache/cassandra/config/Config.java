@@ -165,6 +165,7 @@ public class Config
     @Replaces(oldName = "cas_contention_timeout_in_ms", converter = Converters.MILLIS_DURATION_LONG, deprecated = true)
     public volatile DurationSpec.LongMillisecondsBound cas_contention_timeout = new DurationSpec.LongMillisecondsBound("1800ms");
 
+    @Hidden
     public volatile DurationSpec.LongMillisecondsBound accord_preaccept_timeout = new DurationSpec.LongMillisecondsBound("1s");
 
     @Replaces(oldName = "truncate_request_timeout_in_ms", converter = Converters.MILLIS_DURATION_LONG, deprecated = true)
@@ -185,19 +186,24 @@ public class Config
 
     public volatile DurationSpec.LongMillisecondsBound stream_transfer_task_timeout = new DurationSpec.LongMillisecondsBound("12h");
 
+    @Hidden
     public volatile DurationSpec.LongMillisecondsBound cms_await_timeout = new DurationSpec.LongMillisecondsBound("120000ms");
+    @Hidden
     public volatile int cms_default_max_retries = 10;
     @Deprecated(since="6.0")
     public volatile DurationSpec.IntMillisecondsBound cms_default_retry_backoff = null;
     @Deprecated(since="6.0")
     public volatile DurationSpec.IntMillisecondsBound cms_default_max_retry_backoff = null;
+    @Hidden
     public String cms_retry_delay = "50ms*attempts <= 500ms ... 100ms*attempts <= 1s,retries=10";
 
+    @Hidden
     public volatile int epoch_aware_debounce_inflight_tracker_max_size = 100;
 
     /**
      * How often we should snapshot the cluster metadata.
      */
+    @Hidden
     public volatile int metadata_snapshot_frequency = 100;
 
 
@@ -205,6 +211,7 @@ public class Config
 
     public int concurrent_reads = 32;
     public int concurrent_writes = 32;
+    @Hidden
     public int concurrent_accord_operations = 32;
     public int concurrent_counter_writes = 32;
     public int concurrent_materialized_view_writes = 32;
@@ -524,8 +531,10 @@ public class Config
     public volatile int compression_dictionary_cache_size = 10; // max dictionaries per table
     public volatile DurationSpec.IntSecondsBound compression_dictionary_cache_expire = new DurationSpec.IntSecondsBound("24h");
 
+    @Hidden
     public DataStorageSpec.LongMebibytesBound paxos_cache_size = null;
 
+    @Hidden
     public DataStorageSpec.LongMebibytesBound consensus_migration_cache_size = null;
 
     @Replaces(oldName = "cache_load_timeout_seconds", converter = Converters.NEGATIVE_SECONDS_DURATION, deprecated = true)
@@ -1122,6 +1131,7 @@ public class Config
     /**
      * See {@link PaxosVariant}. Defaults to v1, recommend upgrading to v2 at earliest opportunity.
      */
+    @Hidden
     public volatile PaxosVariant paxos_variant = PaxosVariant.v1;
 
     /**
@@ -1129,12 +1139,14 @@ public class Config
      * rare operation circumstances e.g. where for some reason the repair is impossible to perform (e.g. too few replicas)
      * and an unsafe topology change must be made
      */
+    @Hidden
     public volatile boolean skip_paxos_repair_on_topology_change = SKIP_PAXOS_REPAIR_ON_TOPOLOGY_CHANGE.getBoolean();
 
     /**
      * A safety margin when purging paxos state information that has been safely replicated to a quorum.
      * Data for transactions initiated within this grace period will not be expunged.
      */
+    @Hidden
     public volatile DurationSpec.LongSecondsBound paxos_purge_grace_period = new DurationSpec.LongSecondsBound("60s");
 
     /**
@@ -1160,17 +1172,20 @@ public class Config
      * of linearizability violations. this facility should be activated only for debugging Cassandra or by power users
      * who are investigating their own application behaviour.
      */
+    @Hidden
     public volatile PaxosOnLinearizabilityViolation paxos_on_linearizability_violations = PaxosOnLinearizabilityViolation.ignore;
 
     /**
      * See {@link PaxosStatePurging} default is legacy.
      */
+    @Hidden
     public volatile PaxosStatePurging paxos_state_purging;
 
     /**
      * Enable/disable paxos repair. This is a global flag that not only determines default behaviour but overrides
      * explicit paxos repair requests, paxos repair on topology changes and paxos auto repairs.
      */
+    @Hidden
     public volatile boolean paxos_repair_enabled = true;
 
     /**
@@ -1178,6 +1193,7 @@ public class Config
      * it requires a global quorum as well as a local quorum for each dc (EACH_QUORUM), with the
      * exception explained in paxos_topology_repair_strict_each_quorum
      */
+    @Hidden
     public boolean paxos_topology_repair_no_dc_checks = false;
 
     /**
@@ -1185,36 +1201,43 @@ public class Config
      * accept a quorum OR n - 1 live nodes. This is to allow for topologies like 2:2:2, where paxos queries
      * always use SERIAL, and a single node down in a dc should not preclude a paxos repair
      */
+    @Hidden
     public boolean paxos_topology_repair_strict_each_quorum = false;
 
     /**
      * If necessary for operational purposes, permit certain keyspaces to be ignored for paxos topology repairs
      */
+    @Hidden
     public volatile Set<String> skip_paxos_repair_on_topology_change_keyspaces = splitCommaDelimited(SKIP_PAXOS_REPAIR_ON_TOPOLOGY_CHANGE_KEYSPACES.getString());
 
     /**
      * See {@link org.apache.cassandra.service.paxos.ContentionStrategy}
      */
+    @Hidden
     public String paxos_contention_wait_randomizer;
 
     /**
      * See {@link org.apache.cassandra.service.paxos.ContentionStrategy}
      */
+    @Hidden
     public String paxos_contention_min_wait;
 
     /**
      * See {@link org.apache.cassandra.service.paxos.ContentionStrategy}
      */
+    @Hidden
     public String paxos_contention_max_wait;
 
     /**
      * See {@link org.apache.cassandra.service.paxos.ContentionStrategy}
      */
+    @Hidden
     public String paxos_contention_min_delta;
 
     /**
      * The number of keys we may simultaneously attempt to finish incomplete paxos operations for.
      */
+    @Hidden
     public volatile int paxos_repair_parallelism = -1;
 
     public volatile boolean sstable_read_rate_persistence_enabled = false;
@@ -1493,12 +1516,18 @@ public class Config
      * We will still try all consistency levels above the lowest acceptable, and only fall back to it if we can not
      * collect enough nodes.
      */
+    @Hidden
     public volatile ConsistencyLevel progress_barrier_min_consistency_level = ConsistencyLevel.EACH_QUORUM;
+    @Hidden
     public volatile ConsistencyLevel progress_barrier_default_consistency_level = ConsistencyLevel.EACH_QUORUM;
 
+    @Hidden
     public volatile DurationSpec.LongMillisecondsBound progress_barrier_timeout = new DurationSpec.LongMillisecondsBound("3600000ms");
+    @Hidden
     public volatile DurationSpec.LongMillisecondsBound progress_barrier_backoff = new DurationSpec.LongMillisecondsBound("1000ms");
+    @Hidden
     public volatile DurationSpec.LongSecondsBound discovery_timeout = new DurationSpec.LongSecondsBound("30s");
+    @Hidden
     public boolean unsafe_tcm_mode = false;
 
     public enum TriggersPolicy
@@ -1533,6 +1562,7 @@ public class Config
     public DurationSpec.LongMillisecondsBound native_transport_timeout = new DurationSpec.LongMillisecondsBound("12s");
     public boolean enforce_native_deadline_for_hints = false;
 
+    @Hidden
     public boolean paxos_repair_race_wait = true;
 
     /**
